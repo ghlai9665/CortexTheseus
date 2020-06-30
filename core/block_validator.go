@@ -78,7 +78,7 @@ func (v *BlockValidator) ValidateBody(block *types.Block) error {
 // transition, such as amount of used gas, the receipt roots and the state root
 // itself. ValidateState returns a database batch if the validation was a success
 // otherwise nil and an error is returned.
-func (v *BlockValidator) ValidateState(block, parent *types.Block, statedb *state.StateDB, receipts types.Receipts, usedGas uint64) error {
+func (v *BlockValidator) ValidateState(block *types.Block, statedb *state.StateDB, receipts types.Receipts, usedGas uint64) error {
 	header := block.Header()
 	if block.GasUsed() != usedGas {
 		return fmt.Errorf("invalid gas used (remote: %d local: %d)", block.GasUsed(), usedGas)
@@ -144,29 +144,4 @@ func CalcGasLimit(parent *types.Block, gasFloor, gasCeil uint64) uint64 {
 		}
 	}
 	return limit
-}
-
-//important add gas limit to consensus
-func CheckGasLimit(gasUsed, gasLimit, currentGasLimit uint64) bool {
-	contrib := (gasUsed + gasUsed/2) / params.GasLimitBoundDivisor
-	decay := gasLimit/params.GasLimitBoundDivisor - 1
-	limit := gasLimit - decay + contrib
-
-	if limit < params.MinGasLimit {
-		limit = params.MinGasLimit
-	}
-
-	if limit < params.MinerGasFloor {
-		limit = gasLimit + decay
-		if limit > params.MinerGasFloor {
-			limit = params.MinerGasFloor
-		}
-	} else if limit > params.MinerGasCeil {
-		limit = gasLimit - decay
-		if limit < params.MinerGasCeil {
-			limit = params.MinerGasCeil
-		}
-	}
-
-	return limit == currentGasLimit
 }

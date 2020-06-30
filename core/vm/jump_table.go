@@ -17,9 +17,6 @@
 package vm
 
 import (
-	"errors"
-	"math/big"
-
 	"github.com/CortexFoundation/CortexTheseus/params"
 )
 
@@ -27,10 +24,8 @@ type (
 	executionFunc       func(pc *uint64, interpreter *CVMInterpreter, callContext *callCtx) ([]byte, error)
 	gasFunc             func(params.GasTable, *CVM, *Contract, *Stack, *Memory, uint64) (uint64, error) // last parameter is the requested memory size as a uint64
 	stackValidationFunc func(*Stack) error
-	memorySizeFunc      func(*Stack) *big.Int
+	memorySizeFunc      func(*Stack) (size uint64, overflow bool)
 )
-
-var errGasUintOverflow = errors.New("gas uint64 overflow")
 
 type operation struct {
 	// execute is the operation function

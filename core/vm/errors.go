@@ -23,6 +23,9 @@ import (
 
 // List execution errors
 var (
+	// ErrInvalidSubroutineEntry means that a BEGINSUB was reached via iteration,
+	// as opposed to from a JUMPSUB instruction
+	ErrInvalidSubroutineEntry   = errors.New("invalid subroutine entry")
 	ErrOutOfGas                 = errors.New("out of gas")
 	ErrCodeStoreOutOfGas        = errors.New("contract creation code storage out of gas")
 	ErrDepth                    = errors.New("max call depth exceeded")
@@ -34,11 +37,18 @@ var (
 	ErrNoCompatibleInterpreter = errors.New("no compatible interpreter")
 	ErrInvalidMetaAuthor       = errors.New("invalid meta author")
 
+	ErrGasUintOverflow     = errors.New("gas uint64 overflow")
+	ErrInvalidJump         = errors.New("invalid jump destination")
+	ErrInvalidRetsub       = errors.New("invalid retsub")
+	ErrReturnStackExceeded = errors.New("return stack limit reached")
+
 	ErrDownloading    = errors.New("downloading")
 	ErrFileNotExist   = errors.New("file not exist")
 	ErrInvalidTorrent = errors.New("invalid torrent")
 	ErrInfer          = errors.New("infer error")
 
-	ErrRuntime = synapse.KERNEL_RUNTIME_ERROR
-	ErrLogic   = synapse.KERNEL_LOGIC_ERROR
+	ErrRuntime               = synapse.KERNEL_RUNTIME_ERROR
+	ErrLogic                 = synapse.KERNEL_LOGIC_ERROR
+	ErrReturnDataOutOfBounds = errors.New("return data out of bounds")
+	ErrExecutionReverted     = errors.New("execution reverted")
 )

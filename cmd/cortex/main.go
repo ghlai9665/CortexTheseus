@@ -19,16 +19,6 @@ package main
 
 import (
 	"fmt"
-	"math"
-	"math/big"
-	"os"
-	"runtime"
-	godebug "runtime/debug"
-	"sort"
-	"strconv"
-	"strings"
-	"time"
-
 	"github.com/CortexFoundation/CortexTheseus/accounts"
 	"github.com/CortexFoundation/CortexTheseus/accounts/keystore"
 	"github.com/CortexFoundation/CortexTheseus/client"
@@ -39,8 +29,18 @@ import (
 	"github.com/CortexFoundation/CortexTheseus/log"
 	"github.com/CortexFoundation/CortexTheseus/metrics"
 	"github.com/CortexFoundation/CortexTheseus/node"
-	"github.com/elastic/gosigar"
+	_ "github.com/CortexFoundation/CortexTheseus/statik"
+	"github.com/arsham/figurine/figurine"
+	gopsutil "github.com/shirou/gopsutil/mem"
 	cli "gopkg.in/urfave/cli.v1"
+	"math"
+	"math/big"
+	"os"
+	godebug "runtime/debug"
+	"sort"
+	"strconv"
+	"strings"
+	"time"
 )
 
 const (
@@ -62,6 +62,7 @@ var (
 		// utils.BootnodesV5Flag,
 		utils.DataDirFlag,
 		utils.KeyStoreDirFlag,
+		utils.ExternalSignerFlag,
 		// utils.NoUSBFlag,
 		utils.TxPoolLocalsFlag,
 		utils.TxPoolNoLocalsFlag,
@@ -109,7 +110,7 @@ var (
 		//utils.MinerAlgorithmFlag,
 		utils.NATFlag,
 		utils.NoDiscoverFlag,
-		// utils.DiscoveryV5Flag,
+		utils.DiscoveryV5Flag,
 		utils.NetrestrictFlag,
 		utils.NodeKeyFileFlag,
 		utils.NodeKeyHexFlag,
@@ -142,6 +143,7 @@ var (
 
 	storageFlags = []cli.Flag{
 		utils.StorageDirFlag,
+		utils.StorageRpcFlag,
 		utils.StoragePortFlag,
 		//utils.StorageEnabledFlag,
 		utils.StorageMaxSeedingFlag,
@@ -167,6 +169,8 @@ var (
 		utils.IPCDisabledFlag,
 		utils.IPCPathFlag,
 		utils.InsecureUnlockAllowedFlag,
+		utils.RPCGlobalGasCap,
+		utils.RPCGlobalTxFeeCap,
 	}
 
 	whisperFlags = []cli.Flag{
@@ -236,7 +240,7 @@ func init() {
 	app.Flags = append(app.Flags, inferFlags...)
 
 	app.Before = func(ctx *cli.Context) error {
-		return debug.Setup(ctx, "")
+		return debug.Setup(ctx)
 	}
 
 	app.After = func(ctx *cli.Context) error {
@@ -261,6 +265,11 @@ func cortex(ctx *cli.Context) error {
 	if args := ctx.Args(); len(args) > 0 {
 		return fmt.Errorf("invalid command: %q", args[0])
 	}
+
+	err := figurine.Write(os.Stdout, "CORTEX", "3d.flf")
+	if err != nil {
+		log.Error("", "err", err)
+	}
 	prepare(ctx)
 	node := makeFullNode(ctx)
 	defer node.Close()
@@ -280,20 +289,18 @@ func prepare(ctx *cli.Context) {
 		ctx.GlobalSet(utils.CacheFlag.Name, strconv.Itoa(4096))
 	}
 	// Cap the cache allowance and tune the garbage collector
-	var mem gosigar.Mem
+	mem, err := gopsutil.VirtualMemory()
 	// Workaround until OpenBSD support lands into gosigar
 	// Check https://github.com/elastic/gosigar#supported-platforms
-	if runtime.GOOS != "openbsd" {
-		if err := mem.Get(); err == nil {
-			if 32<<(^uintptr(0)>>63) == 32 && mem.Total > 2*1024*1024*1024 {
-				log.Warn("Lowering memory allowance on 32bit arch", "available", mem.Total/1024/1024, "addressable", 2*1024)
-				mem.Total = 2 * 1024 * 1024 * 1024
-			}
-			allowance := int(mem.Total / 1024 / 1024 / 3)
-			if cache := ctx.GlobalInt(utils.CacheFlag.Name); cache > allowance {
-				log.Warn("Sanitizing cache to Go's GC limits", "provided", cache, "updated", allowance)
-				ctx.GlobalSet(utils.CacheFlag.Name, strconv.Itoa(allowance))
-			}
+	if err == nil {
+		if 32<<(^uintptr(0)>>63) == 32 && mem.Total > 2*1024*1024*1024 {
+			log.Warn("Lowering memory allowance on 32bit arch", "available", mem.Total/1024/1024, "addressable", 2*1024)
+			mem.Total = 2 * 1024 * 1024 * 1024
+		}
+		allowance := int(mem.Total / 1024 / 1024 / 3)
+		if cache := ctx.GlobalInt(utils.CacheFlag.Name); cache > allowance {
+			log.Warn("Sanitizing cache to Go's GC limits", "provided", cache, "updated", allowance)
+			ctx.GlobalSet(utils.CacheFlag.Name, strconv.Itoa(allowance))
 		}
 	}
 	// Ensure Go's GC ignores the database cache for trigger percentage
