@@ -1,54 +1,84 @@
-# Cortex
+# Cortex - Realizing On-chain AI
+
+## Contribution
+
+Cortex is fully open-source and committed to build the AI on Blockchain ecosystem. Any type of contribution to the source code is welcomed, whether it’s a new module, bug fix, documentation edit or even a typo correction!
+
+To contribute to Cortex, simply fork this repo, make your changes, push to your forked repo, and open a pull request. If the change is rather extensive, it's a good idea to get in touch with our core devs first by joining our [Telegram](https://t.me/CortexOfficialEN) group or opening a Github issue. This way we can guide you through the Cortex code base, answer questions, provide feedbacks and ensure that the changes align with the general philosophy of the community.
+
+To learn about Cortex project as a whole, read this [page](https://github.com/ghlai9665/tech-doc/blob/master/cortex-guide.md) first, which serves as an entry point in introducing the big picture and how every piece fits together.
+
+See instructions below for setting up your developer environment.
+
 ## File storage
+
 https://github.com/CortexFoundation/torrentfs
+
 ## System Requirements
+
 ### ubuntu
+
 Cortex node is developed in Ubuntu 18.04 x64 + CUDA 9.2 + NVIDIA Driver 396.37 environment, with CUDA Compute capability >= 6.1. Latest Ubuntu distributions are also compatible, but not fully tested.
 Recommend:
+
 - cmake 3.11.0+
- ```
+
+```
 wget https://cmake.org/files/v3.11/cmake-3.11.0-rc4-Linux-x86_64.tar.gz
 tar zxvf cmake-3.11.0-rc4-Linux-x86_64.tar.gz
 sudo mv cmake-3.11.0-rc4-Linux-x86_64  /opt/cmake-3.11
 sudo ln -sf /opt/cmake-3.11/bin/*  /usr/bin/
- ```
+```
+
 - go 1.14.x
+
 ```
 wget https://dl.google.com/go/go1.14.2.linux-amd64.tar.gz
 sudo tar -C /usr/local -xzf go1.14.2.linux-amd64.tar.gz
 echo 'export PATH="$PATH:/usr/local/go/bin"' >> ~/.bashrc
 source ~/.bashrc
 ```
+
 - gcc/g++ 5.4+
+
 ```
 sudo apt install gcc
 ```
+
 - cuda 9.2+ (if u have gpu)
+
 ```
 export LD_LIBRARY_PATH=/usr/local/cuda/lib64/:/usr/local/cuda/lib64/stubs:$LD_LIBRARY_PATH
 export LIBRARY_PATH=/usr/local/cuda/lib64/:/usr/local/cuda/lib64/stubs:$LIBRARY_PATH
 ```
+
 - nvidia driver 396.37+ reference: https://docs.nvidia.com/cuda/cuda-toolkit-release-notes/index.html#major-components
 - ubuntu 16.04+
+
 ### centos
+
 Recommend:
+
 - cmake 3.11.0+
 - go 1.14.x
 - gcc/g++ 5.4+ reference: https://docs.nvidia.com/cuda/cuda-installation-guide-linux/index.html#system-requirements
 - cuda 10.1+ (if u have gpu)
+
 ```
 export LD_LIBRARY_PATH=/usr/local/cuda/lib64/:/usr/local/cuda/lib64/stubs:$LD_LIBRARY_PATH
 export LIBRARY_PATH=/usr/local/cuda/lib64/:/usr/local/cuda/lib64/stubs:$LIBRARY_PATH
 ```
+
 - nvidia driver 418.67+
 - centos 7.6
 
 ## Cortex Full Node
 
 ### Compile Source Code
+
 1. git clone https://github.com/CortexFoundation/CortexTheseus.git
 2. cd CortexTheseus
-3. make clean && make -j$(nproc)
+3. make clean && make -j\$(nproc)
 
 ### Running Bash
 
